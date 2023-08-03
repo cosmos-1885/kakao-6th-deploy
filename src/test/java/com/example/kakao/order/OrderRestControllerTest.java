@@ -94,6 +94,6 @@ public class OrderRestControllerTest extends MyRestDoc {
         // then
         result.andExpect(jsonPath("$.success").value("false"));
         result.andExpect(jsonPath("$.error.message").value("주문 내역이 존재하지 않습니다 : " + id));
-        result.andExpect(jsonPath("$.error.status").value(404));
+        result.andExpect(jsonPath("$.error.status").value(400));
     }
 }

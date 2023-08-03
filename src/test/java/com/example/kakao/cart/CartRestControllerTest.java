@@ -163,7 +163,7 @@ public class CartRestControllerTest extends MyRestDoc {
         // verify
         resultActions.andExpect(jsonPath("$.success").value("false"));
         resultActions.andExpect(jsonPath("$.error.message").value("장바구니가 존재하지 않습니다."));
-        resultActions.andExpect(jsonPath("$.error.status").value(404));
+        resultActions.andExpect(jsonPath("$.error.status").value(400));
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
@@ -228,7 +228,7 @@ public class CartRestControllerTest extends MyRestDoc {
         // verify
         resultActions.andExpect(jsonPath("$.success").value("false"));
         resultActions.andExpect(jsonPath("$.error.message").value("장바구니가 존재하지 않습니다."));
-        resultActions.andExpect(jsonPath("$.error.status").value(404));
+        resultActions.andExpect(jsonPath("$.error.status").value(400));
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);;
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }

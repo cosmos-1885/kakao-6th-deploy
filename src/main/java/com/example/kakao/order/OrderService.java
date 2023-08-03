@@ -43,7 +43,7 @@ public class OrderService {
 
     public OrderResponse.FindByIdDTO findById(int id, User user) {
         Order order = orderJPARepository.findByIdAndUserId(id, user.getId()).orElseThrow(
-                () -> new Exception404("주문 내역이 존재하지 않습니다 : " + id)
+                () -> new Exception400("주문 내역이 존재하지 않습니다 : " + id)
         );
         List<Item> itemList = itemJPARepository.findByOrderId(id);
         return new OrderResponse.FindByIdDTO(order, itemList);
