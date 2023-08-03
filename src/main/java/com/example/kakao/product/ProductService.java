@@ -20,24 +20,6 @@ public class ProductService {
     private final ProductJPARepository productRepository;
     private final OptionJPARepository optionRepository;
 
-    public ProductResponse.FindByIdDTOv2 findByIdv2(int id) {
-        List<Option> optionListPS = optionRepository.findByProductIdJoinProduct(id);
-        if(optionListPS.size() == 0){
-            throw new Exception404("해당 상품을 찾을 수 없습니다 : "+id);
-        }
-        return new ProductResponse.FindByIdDTOv2(optionListPS);
-    }
-
-    public ProductResponse.FindByIdDTO findById(int id) {
-        Product productPS = productRepository.findById(id).orElseThrow(
-                () -> new Exception404("해당 상품을 찾을 수 없습니다 : "+id)
-        );
-        List<Option> optionListPS = optionRepository.findByProductId(productPS.getId());
-        return new ProductResponse.FindByIdDTO(productPS, optionListPS);
-    }
-
-
-
     public List<ProductResponse.FindAllDTO> findAll(int page) {
         // 1. 페이지 객체 만들기
         Pageable pageable = PageRequest.of(page,9);
@@ -54,5 +36,13 @@ public class ProductService {
                 .map(product -> new ProductResponse.FindAllDTO(product))
                 .collect(Collectors.toList());
         return responseDTOs;
+    }
+
+    public ProductResponse.FindByIdDTO findById(int id) {
+        List<Option> optionListPS = optionRepository.findByProductIdJoinProduct(id);
+        if(optionListPS.size() == 0){
+            throw new Exception404("해당 상품을 찾을 수 없습니다 : "+id);
+        }
+        return new ProductResponse.FindByIdDTO(optionListPS);
     }
 }

@@ -8,7 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,14 +21,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 public class ProductRestControllerTest extends MyRestDoc {
-
     @Test
     public void findAll_test() throws Exception {
         // given teardown.sql
+        String page = "0";
 
         // when
         ResultActions resultActions = mvc.perform(
                 get("/products")
+                        .param("page", page)
         );
 
         // console
@@ -64,6 +67,30 @@ public class ProductRestControllerTest extends MyRestDoc {
         resultActions.andExpect(jsonPath("$.response.description").value(""));
         resultActions.andExpect(jsonPath("$.response.image").value("/images/1.jpg"));
         resultActions.andExpect(jsonPath("$.response.price").value(1000));
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.response.starCount").value(5));
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.response.options[0].id").value(1));
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.response.options[0].optionName").value("01. 슬라이딩 지퍼백 크리스마스에디션 4종"));
+        resultActions.andExpect(MockMvcResultMatchers.jsonPath("$.response.options[0].price").value(10000));
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
+    }
+
+    @Test
+    public void findById_fail_test_product_not_found() throws Exception {
+        // given
+        int id = 100;
+
+        // when
+        ResultActions result = mvc.perform(
+                MockMvcRequestBuilders
+                        .get("/products/" + id)
+        );
+
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트: " + responseBody);
+
+        // then
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.success").value("false"));
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.error.message").value("해당 상품을 찾을 수 없습니다 : 100"));
+        result.andExpect(MockMvcResultMatchers.jsonPath("$.error.status").value(404));
     }
 }

@@ -12,7 +12,9 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ public class CartRestControllerTest extends MyRestDoc {
 
     @WithUserDetails(value = "ssarmango@nate.com")
     @Test
-    public void addCartList_test() throws Exception {
+    public void addCartList_test_new_option() throws Exception {
         // given -> optionId [1,2,16]이 teardown.sql을 통해 들어가 있음
         List<CartRequest.SaveDTO> requestDTOs = new ArrayList<>();
         CartRequest.SaveDTO item = new CartRequest.SaveDTO();
@@ -41,6 +43,7 @@ public class CartRestControllerTest extends MyRestDoc {
         requestDTOs.add(item);
 
         String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
 
         // when
         ResultActions resultActions = mvc.perform(
@@ -54,6 +57,64 @@ public class CartRestControllerTest extends MyRestDoc {
 
         // verify
         resultActions.andExpect(jsonPath("$.success").value("true"));
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
+    }
+
+    @WithUserDetails(value = "ssarmango@nate.com")
+    @Test
+    public void addCartList_test_existing_option() throws Exception {
+        // given -> optionId [1,2,16]이 teardown.sql을 통해 들어가 있음
+        List<CartRequest.SaveDTO> requestDTOs = new ArrayList<>();
+        CartRequest.SaveDTO item = new CartRequest.SaveDTO();
+        item.setOptionId(1);
+        item.setQuantity(5);
+        requestDTOs.add(item);
+
+        String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
+
+        // when
+        ResultActions resultActions = mvc.perform(
+                post("/carts/add")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        );
+
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : " + responseBody);
+
+        // verify
+        resultActions.andExpect(jsonPath("$.success").value("true"));
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
+    }
+
+    @WithUserDetails(value = "ssarmango@nate.com")
+    @Test
+    public void addCartList_fail_test_option_not_found() throws Exception {
+        // given -> optionId [1,2,16]이 teardown.sql을 통해 들어가 있음
+        List<CartRequest.SaveDTO> requestDTOs = new ArrayList<>();
+        CartRequest.SaveDTO item = new CartRequest.SaveDTO();
+        item.setOptionId(100);
+        item.setQuantity(5);
+        requestDTOs.add(item);
+
+        String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
+
+        // when
+        ResultActions resultActions = mvc.perform(
+                post("/carts/add")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        );
+
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : " + responseBody);
+
+        // verify
+        resultActions.andExpect(jsonPath("$.success").value("false"));
+        resultActions.andExpect(jsonPath("$.error.message").value("해당 옵션을 찾을 수 없습니다 : 100"));
+        resultActions.andExpect(jsonPath("$.error.status").value(404));
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
@@ -85,6 +146,27 @@ public class CartRestControllerTest extends MyRestDoc {
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
+    @WithUserDetails(value = "ssarapple@nate.com")
+    @Test
+    public void findAll_fail_test_empty_cart() throws Exception {
+        // given teardown
+
+        // when
+        ResultActions resultActions = mvc.perform(
+                get("/carts")
+        );
+
+        // eye
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : " + responseBody);
+
+        // verify
+        resultActions.andExpect(jsonPath("$.success").value("false"));
+        resultActions.andExpect(jsonPath("$.error.message").value("장바구니가 존재하지 않습니다."));
+        resultActions.andExpect(jsonPath("$.error.status").value(404));
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
+    }
+
     @WithUserDetails(value = "ssarmango@nate.com")
     @Test
     public void update_test() throws Exception {
@@ -96,6 +178,7 @@ public class CartRestControllerTest extends MyRestDoc {
         requestDTOs.add(item);
 
         String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
 
         // when
         ResultActions resultActions = mvc.perform(
@@ -118,4 +201,66 @@ public class CartRestControllerTest extends MyRestDoc {
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
+    @WithUserDetails(value = "ssarapple@nate.com")
+    @Test
+    public void update_fail_test_empty_cart() throws Exception {
+        // given -> cartId [1번 5개,2번 1개,3번 5개]가 teardown.sql을 통해 들어가 있음
+        List<CartRequest.UpdateDTO> requestDTOs = new ArrayList<>();
+        CartRequest.UpdateDTO item = new CartRequest.UpdateDTO();
+        item.setCartId(1);
+        item.setQuantity(10);
+        requestDTOs.add(item);
+
+        String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
+
+        // when
+        ResultActions resultActions = mvc.perform(
+                post("/carts/update")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        );
+
+        // eye
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : " + responseBody);
+
+        // verify
+        resultActions.andExpect(jsonPath("$.success").value("false"));
+        resultActions.andExpect(jsonPath("$.error.message").value("장바구니가 존재하지 않습니다."));
+        resultActions.andExpect(jsonPath("$.error.status").value(404));
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);;
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
+    }
+
+    @WithUserDetails(value = "ssarmango@nate.com")
+    @Test
+    public void update_fail_test_option_not_found() throws Exception {
+        // given -> cartId [1번 5개,2번 1개,3번 5개]가 teardown.sql을 통해 들어가 있음
+        List<CartRequest.UpdateDTO> requestDTOs = new ArrayList<>();
+        CartRequest.UpdateDTO item = new CartRequest.UpdateDTO();
+        item.setCartId(10);
+        item.setQuantity(10);
+        requestDTOs.add(item);
+
+        String requestBody = om.writeValueAsString(requestDTOs);
+        System.out.println("테스트 : " + requestBody);
+
+        // when
+        ResultActions resultActions = mvc.perform(
+                post("/carts/update")
+                        .content(requestBody)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+        );
+
+        // eye
+        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
+        System.out.println("테스트 : " + responseBody);
+
+        // verify
+        resultActions.andExpect(jsonPath("$.success").value("false"));
+        resultActions.andExpect(jsonPath("$.error.message").value("장바구니에 없는 옵션은 주문할 수 없습니다 : 10"));
+        resultActions.andExpect(jsonPath("$.error.status").value(400));
+        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);;
+    }
 }
