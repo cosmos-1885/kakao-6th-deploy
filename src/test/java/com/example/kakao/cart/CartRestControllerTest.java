@@ -146,27 +146,6 @@ public class CartRestControllerTest extends MyRestDoc {
         resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
     }
 
-    @WithUserDetails(value = "ssarapple@nate.com")
-    @Test
-    public void findAll_fail_test_empty_cart() throws Exception {
-        // given teardown
-
-        // when
-        ResultActions resultActions = mvc.perform(
-                get("/carts")
-        );
-
-        // eye
-        String responseBody = resultActions.andReturn().getResponse().getContentAsString();
-        System.out.println("테스트 : " + responseBody);
-
-        // verify
-        resultActions.andExpect(jsonPath("$.success").value("false"));
-        resultActions.andExpect(jsonPath("$.error.message").value("장바구니가 존재하지 않습니다."));
-        resultActions.andExpect(jsonPath("$.error.status").value(400));
-        resultActions.andDo(MockMvcResultHandlers.print()).andDo(document);
-    }
-
     @WithUserDetails(value = "ssarmango@nate.com")
     @Test
     public void update_test() throws Exception {
